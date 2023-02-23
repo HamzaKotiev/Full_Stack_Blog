@@ -1,29 +1,36 @@
 import express from "express";
-import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
-import bcrypt from "bcrypt"
+
+import { registerValidation, loginValidation, postValidation } from './validations.js'
 
 
-import { validationResult } from 'express-validator'
-import { registerValidation } from './validations/auth.js'
+import * as UserController from './controllers/UserController.js'
+import * as PostController from './controllers/PostController.js'
 
-import {userController} from './controllers/UserController'
 import checkAuth from './Middleware/checkAuth.js'
+
+
 
 const app = express();
 
-mongoose.connect('mongodb+srv://HamzatKot:19082002@cluster0.0qerfhd.mongodb.net/Blog?retryWrites=true&w=majority')
+mongoose
+    .connect('mongodb+srv://HamzatKot:19082002@cluster0.0qerfhd.mongodb.net/Blog?retryWrites=true&w=majority')
     .then(() => console.log('DB ok'))
-    .catch((err) => console.log('DB error', err))
+    .catch((err) => console.log('DB error', err));
 
 app.use(express.json())
 
 
-app.post('/auth/login', async (req, res) => { })
+app.post('/auth/login',loginValidation, UserController.login)
+app.post('/auth/register', registerValidation, UserController.register)
+app.get('/auth/me', checkAuth, UserController.getMe);
 
-app.post('/auth/register', registerValidation, async (req, res) => { })
+// app.get('/post',PostController.getAll);
+// app.get('/post/:id',  PostController.getOne);
+app.post('/post', checkAuth, postValidation, PostController.create);
+// app.delete('/post', checkAuth, PostController.remove);
+// app.patch('/post', checkAuth, PostController.updete);
 
-app.get('/auth/me', checkAuth, async (req, res) => { })
 
 
 app.listen(4000, (err) => {
