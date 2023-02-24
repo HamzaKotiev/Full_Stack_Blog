@@ -8,10 +8,8 @@ import {
   postValidation,
 } from "./validations.js";
 
-import * as UserController from "./controllers/UserController.js";
-import * as PostController from "./controllers/PostController.js";
-
-import checkAuth from "./Middleware/checkAuth.js";
+import { checkAuth, hendleValidationErrors } from "./Middleware/index.js";
+import { UserController, PostController } from "./controllers/index.js";
 
 const app = express();
 
@@ -33,23 +31,47 @@ const storage = multer.diskStorage({
   },
 });
 
-const uploads = multer({ storage });
+const upload = multer({ storage });
 
-app.post('/uploads', checkAuth, uploads.single('image'), (req, res) => {
+app.post("/upload", checkAuth, upload.single("image"), (req, res) => {
   res.json({
     url: `/uploads/${req.file.originalname}`,
   });
 });
 
-app.post("/auth/login", loginValidation, UserController.login);
-app.post("/auth/register", registerValidation, UserController.register);
+app.use("/uploads", express.static("uploads"));
+
+app.post(
+  "/auth/login",
+  loginValidation,
+  hendleValidationErrors,
+  UserController.login
+);
+app.post(
+  "/auth/register",
+  registerValidation,
+  hendleValidationErrors,
+  UserController.register
+);
 app.get("/auth/me", checkAuth, UserController.getMe);
 
 app.get("/posts", PostController.getAll);
 app.get("/posts/:id", PostController.getOne);
-app.post("/posts", checkAuth, postValidation, PostController.create);
+app.post(
+  "/posts",
+  checkAuth,
+  postValidation,
+  hendleValidationErrors,
+  PostController.create
+);
 app.delete("/posts/:id", checkAuth, PostController.remove);
-app.patch("/posts/:id", checkAuth, PostController.updete);
+app.patch(
+  "/posts/:id",
+  checkAuth,
+  postValidation,
+  hendleValidationErrors,
+  PostController.updete
+);
 
 app.listen(4000, (err) => {
   if (err) {
