@@ -41,7 +41,42 @@ export const getOne = async (req, res) => {
           });
         }
 
-        res.json(doc)
+        res.json(doc);
+      }
+    );
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      message: "Не удалось найти пост",
+    });
+  }
+};
+
+export const remove = async (req, res) => {
+  try {
+    const postId = req.params.id;
+    Post.findByIdAndDelete(
+      {
+        _id: postId,
+      },
+      (err, doc) => {
+        if (err) {
+          console.log(err);
+          return res.status(500).json({
+            message: "Не удалось удалить статью ",
+          });
+        }
+
+        if (!doc) {
+          console.log(err);
+          return res.status(404).json({
+            message: "Статья не найдена",
+          });
+        }
+
+        res.json({
+          success: true,
+        });
       }
     );
   } catch (error) {
@@ -68,6 +103,34 @@ export const create = async (req, res) => {
     return res.status(500).json({
       // ответ для пользователя
       messag: "Не удалось добавить пост",
+    });
+  }
+};
+
+export const updete = async (req, res) => {
+  try {
+    const postId = req.params.id;
+
+    await Post.updateOne(
+      {
+        _id: postId,
+      },
+      {
+        title: req.body.title,
+        text: req.body.text,
+        imageUrl: req.body.imageUrl,
+        tegs: req.body.tegs,
+        user: req.userId,
+      }
+    );
+
+    res.json({
+      success: true,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      message: "Не удалось найти пост",
     });
   }
 };

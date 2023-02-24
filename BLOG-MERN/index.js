@@ -1,4 +1,5 @@
 import express from "express";
+import multer from "multer";
 import mongoose from "mongoose";
 
 import {
@@ -23,15 +24,32 @@ mongoose
 
 app.use(express.json());
 
+const storage = multer.diskStorage({
+  destination: (_, __, cb) => {
+    cb(null, "uploads");
+  },
+  filename: (_, file, cb) => {
+    cb(null, file.originalname);
+  },
+});
+
+const uploads = multer({ storage });
+
+app.post('/uploads', checkAuth, uploads.single('image'), (req, res) => {
+  res.json({
+    url: `/uploads/${req.file.originalname}`,
+  });
+});
+
 app.post("/auth/login", loginValidation, UserController.login);
 app.post("/auth/register", registerValidation, UserController.register);
 app.get("/auth/me", checkAuth, UserController.getMe);
 
-app.get('/posts',PostController.getAll);
-app.get('/posts/:id',  PostController.getOne);
+app.get("/posts", PostController.getAll);
+app.get("/posts/:id", PostController.getOne);
 app.post("/posts", checkAuth, postValidation, PostController.create);
-// app.delete('/post', checkAuth, PostController.remove);
-// app.patch('/post', checkAuth, PostController.updete);
+app.delete("/posts/:id", checkAuth, PostController.remove);
+app.patch("/posts/:id", checkAuth, PostController.updete);
 
 app.listen(4000, (err) => {
   if (err) {
